@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find Your Step — PerHea</title>
+  <meta name="description" content="Seven questions about how you actually train. Two minutes. The result tells you exactly where you're stuck and why." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F0F4F8;
+      --navy: #0D1B2A;
+      --indigo: #5B5BD6;
+      --teal: #2DD4A0;
+      --body-text: #6B7280;
+      --dark-card: #1A2B3C;
+      --white: #FFFFFF;
+      --border: #E2E8F0;
+      --radius-card: 16px;
+      --radius-btn: 50px;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      font-family: var(--font);
+      color: var(--navy);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+      padding: 24px 20px 48px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .screen.active { display: flex; flex-direction: column; }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 48px;
+    }
+    .logo span:first-child { color: var(--navy); }
+    .logo span:last-child  { color: var(--teal); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 32px;
+      border-radius: var(--radius-btn);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, transform 0.1s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--indigo); color: var(--white); }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--body-text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: #b0b8c4; color: var(--navy); }
+    .btn-ghost:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    #screen-intro .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 16px;
+    }
+    #screen-intro h1 {
+      font-size: clamp(36px, 8vw, 56px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -1.5px;
+      color: var(--navy);
+      margin-bottom: 20px;
+    }
+    #screen-intro .subhead {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--navy);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    #screen-intro .body-text {
+      font-size: 15px;
+      color: var(--body-text);
+      line-height: 1.65;
+      margin-bottom: 28px;
+    }
+    #screen-intro ul {
+      list-style: none;
+      margin-bottom: 40px;
+    }
+    #screen-intro ul li {
+      font-size: 14px;
+      color: var(--body-text);
+      padding: 8px 0 8px 20px;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+      line-height: 1.5;
+    }
+    #screen-intro ul li:first-child { border-top: 1px solid var(--border); }
+    #screen-intro ul li::before {
+      content: '–';
+      position: absolute;
+      left: 0;
+      color: var(--teal);
+      font-weight: 700;
+    }
+    #screen-intro .cta-wrap { margin-top: auto; padding-top: 16px; }
+    #screen-intro .btn-primary { width: 100%; font-size: 17px; padding: 16px 32px; }
+
+    #screen-quiz { gap: 0; }
+
+    .quiz-header { margin-bottom: 32px; }
+    .progress-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--teal);
+      border-radius: 99px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .question-counter {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--body-text);
+    }
+
+    .question-text {
+      font-size: clamp(20px, 5vw, 26px);
+      font-weight: 700;
+      line-height: 1.25;
+      color: var(--navy);
+      margin-bottom: 28px;
+      flex: 0 0 auto;
+    }
+
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 32px;
+      flex: 1;
+    }
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      padding: 16px 20px;
+      border-radius: var(--radius-card);
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--navy);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    }
+    .option-btn:hover {
+      border-color: var(--indigo);
+      box-shadow: 0 0 0 3px rgba(91,91,214,0.08);
+    }
+    .option-btn.selected {
+      border-color: var(--indigo);
+      background: rgba(91,91,214,0.06);
+      color: var(--indigo);
+      font-weight: 600;
+    }
+
+    .quiz-nav {
+      display: flex;
+      gap: 12px;
+      margin-top: auto;
+    }
+    .quiz-nav .btn-ghost { flex: 0 0 auto; min-width: 96px; }
+    .quiz-nav .btn-primary { flex: 1; }
+
+    #screen-result .result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-btn);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    #screen-result .result-title {
+      font-size: clamp(24px, 6vw, 36px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+    #screen-result .result-belief {
+      font-size: 16px;
+      font-style: italic;
+      color: var(--body-text);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    .result-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 10px;
+    }
+    .result-section-text {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--body-text);
+      margin-bottom: 28px;
+    }
+
+    .result-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0 28px;
+    }
+
+    .hear-block {
+      border-left: 3px solid var(--teal);
+      padding: 16px 18px;
+      background: rgba(45,212,160,0.06);
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 40px;
+    }
+    .hear-block-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 10px;
+    }
+    .hear-block-quotes { display: flex; flex-direction: column; gap: 8px; }
+    .hear-quote {
+      font-size: 14px;
+      font-style: italic;
+      color: var(--body-text);
+      line-height: 1.5;
+    }
+    .hear-quote::before { content: '\201C'; }
+    .hear-quote::after  { content: '\201D'; }
+
+    .email-card {
+      background: var(--dark-card);
+      border-radius: var(--radius-card);
+      padding: 28px 24px;
+      margin-bottom: 32px;
+    }
+    .email-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    .email-card .email-subhead {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.55;
+      margin-bottom: 20px;
+    }
+    .email-form { display: flex; flex-direction: column; gap: 10px; }
+    .email-input {
+      width: 100%;
+      padding: 13px 16px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.07);
+      color: var(--white);
+      font-family: var(--font);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .email-input::placeholder { color: rgba(255,255,255,0.35); }
+    .email-input:focus { border-color: var(--teal); }
+    .email-card .btn-primary {
+      width: 100%;
+      background: var(--teal);
+      color: var(--navy);
+      font-size: 15px;
+      padding: 14px;
+      margin-top: 4px;
+    }
+    .email-card .btn-primary:hover { opacity: 0.88; }
+    .email-card .fine-print {
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      text-align: center;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+    .email-success {
+      display: none;
+      text-align: center;
+      padding: 16px 0 4px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--teal);
+    }
+
+    .start-over { text-align: center; padding-bottom: 8px; }
+    .start-over button {
+      background: none;
+      border: none;
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--body-text);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .start-over button:hover { color: var(--navy); }
+
+    @media (min-width: 480px) {
+      .screen { padding: 40px 32px 64px; }
+      #screen-intro h1 { letter-spacing: -2px; }
+    }
+    @media (min-width: 640px) {
+      .screen { padding: 56px 40px 80px; }
+      .quiz-nav .btn-ghost { min-width: 120px; }
+    }
+  </style>
+</head>
+<body>
+
+<section id="screen-intro" class="screen active">
+  <div class="logo"><span>Per</span><span>Hea</span></div>
+  <p class="eyebrow">The PerHea Method</p>
+  <h1>Find your step.</h1>
+  <p class="subhead">Seven questions about how you actually train. Two minutes. The result tells you exactly where you're stuck and why.</p>
+  <p class="body-text">Every athlete who's stuck is stuck at a specific step — a belief or behavior that's quietly working against the training. This diagnostic finds yours. Answer based on how you actually train, not how you think you should.</p>
+  <ul>
+    <li>No right answers. Honest answers only.</li>
+    <li>Seven questions. About two minutes.</li>
+    <li>Your result is free. No email required to see it.</li>
+    <li>A free PDF breakdown is available after if you want it.</li>
+  </ul>
+  <div class="cta-wrap">
+    <button class="btn btn-primary" onclick="startQuiz()">Start →</button>
+  </div>
+</section>
+
+<section id="screen-quiz" class="screen">
+  <div class="logo"><span>Per</span><span>Hea</span></div>
+  <div class="quiz-header">
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <p class="question-counter" id="question-counter">1 of 7</p>
+  </div>
+  <p class="question-text" id="question-text"></p>
+  <div class="options-list" id="options-list"></div>
+  <div class="quiz-nav">
+    <button class="btn btn-ghost" id="btn-back" onclick="goBack()">← Back</button>
+    <button class="btn btn-primary" id="btn-next" onclick="goNext()" disabled>Next →</button>
+  </div>
+</section>
+
+<section id="screen-result" class="screen">
+  <div class="logo"><span>Per</span><span>Hea</span></div>
+  <div id="result-badge" class="result-badge"></div>
+  <h2 id="result-title" class="result-title"></h2>
+  <p id="result-belief" class="result-belief"></p>
+  <p class="result-section-label">The pattern</p>
+  <p id="result-pattern" class="result-section-text"></p>
+  <div class="result-divider"></div>
+  <p class="result-section-label">The coaching focus</p>
+  <p id="result-coaching" class="result-section-text"></p>
+  <div class="result-divider"></div>
+  <div class="hear-block">
+    <p class="hear-block-label">You'll hear yourself say</p>
+    <div class="hear-block-quotes" id="hear-quotes"></div>
+  </div>
+  <div class="email-card">
+    <h3>Get the full breakdown for your step</h3>
+    <p class="email-subhead">A free PDF — the complete guide to your step, what drives it, and how to move through it.</p>
+    <div class="email-form" id="email-form">
+      <input class="email-input" id="input-fname" type="text" placeholder="First name" autocomplete="given-name" />
+      <input class="email-input" id="input-email" type="email" placeholder="Email address" autocomplete="email" />
+      <button class="btn btn-primary" onclick="submitForm()">Send me the PDF →</button>
+      <p class="fine-print">You'll also receive PerHea: The Brief twice a month. Unsubscribe anytime.</p>
+    </div>
+    <p class="email-success" id="email-success">You're in. Check your inbox shortly.</p>
+  </div>
+  <div class="start-over">
+    <button onclick="resetQuiz()">Start over</button>
+  </div>
+</section>
+
+<script>
+  var QUESTIONS = [
+    {
+      text: "You finish a session feeling strong — better than expected. What do you usually do?",
+      options: [
+        { text: "Stop as planned. Good feeling means the dose was right.", weights: {7:2} },
+        { text: "Add a little more. It would be a waste not to use the extra energy.", weights: {1:3, 2:1} },
+        { text: "Push the effort up slightly, even if not the duration.", weights: {1:2, 5:2} },
+        { text: "Finish as planned but feel guilty about not doing more.", weights: {1:1, 2:2} }
+      ]
+    },
+    {
+      text: "How consistent is your training week to week?",
+      options: [
+        { text: "Very consistent — I show up regardless of how I feel.", weights: {7:2, 6:1} },
+        { text: "Good weeks and bad weeks with not much in between.", weights: {2:3} },
+        { text: "Consistent when a race is coming, inconsistent in base training.", weights: {2:3, 3:1} },
+        { text: "I try to be consistent but life often disrupts the plan.", weights: {3:2} }
+      ]
+    },
+    {
+      text: "You miss a planned session due to work or life. What happens next?",
+      options: [
+        { text: "I let it go and continue with the rest of the plan.", weights: {7:2} },
+        { text: "I try to squeeze it in later that day or double up tomorrow.", weights: {3:3} },
+        { text: "I rearrange the week so nothing is technically missed.", weights: {3:3, 4:1} },
+        { text: "I feel anxious about it but eventually move on.", weights: {3:2, 2:1} }
+      ]
+    },
+    {
+      text: "When you look at other athletes' training — on Strava, social media, or in your group — how do you respond?",
+      options: [
+        { text: "Curious but grounded. Their context is different from mine.", weights: {7:2} },
+        { text: "I feel like I should probably be doing more.", weights: {4:3} },
+        { text: "I sometimes try to match their volume or intensity.", weights: {4:3, 1:1} },
+        { text: "I use it for motivation but don't change my own plan.", weights: {4:1, 7:1} }
+      ]
+    },
+    {
+      text: "On an easy or aerobic day, what actually happens?",
+      options: [
+        { text: "I hold the effort where it belongs. Easy means easy.", weights: {7:2} },
+        { text: "The pace tends to drift up — it just feels too slow.", weights: {5:3} },
+        { text: "I keep the pace easy but feel like I wasted a training day.", weights: {5:2, 1:1} },
+        { text: "I sometimes add intensity because the aerobic work feels pointless.", weights: {5:3, 1:1} }
+      ]
+    },
+    {
+      text: "How often do you have 'random' bad days where nothing works and you don't know why?",
+      options: [
+        { text: "Rarely — I can usually trace a bad day back to something.", weights: {7:3} },
+        { text: "Occasionally — maybe once or twice a block.", weights: {6:2} },
+        { text: "Pretty often — it feels unpredictable.", weights: {6:3} },
+        { text: "Almost every week there's at least one session that falls apart.", weights: {6:3, 1:1} }
+      ]
+    },
+    {
+      text: "How do you know if a training session worked?",
+      options: [
+        { text: "By whether I can show up tomorrow and repeat it.", weights: {7:3} },
+        { text: "By how tired or sore I feel afterward.", weights: {1:2, 5:1} },
+        { text: "By the numbers — pace, power, heart rate.", weights: {4:1, 5:1} },
+        { text: "Honestly, I'm not sure. I just hope the effort adds up.", weights: {2:1, 6:2} }
+      ]
+    }
+  ];
+
+  var STEPS = {
+    1: {
+      label: "Step 1", badgeColor: "#712B13", badgeBg: "#FAECE7",
+      title: "You add training when you feel good.",
+      belief: "My body is ready — I should use it.",
+      pattern: "Feeling good triggers more. Easy sessions become harder ones. Good days become the enemy of the plan.",
+      coaching: "Reframe discipline itself. Stopping when you feel good takes more restraint than continuing. That restraint is the workout.",
+      hear: ["I felt great so I kept going", "I had extra time so I added a bit", "It felt too easy to stop there"]
+    },
+    2: {
+      label: "Step 2", badgeColor: "#712B13", badgeBg: "#FAECE7",
+      title: "You train when you feel like it.",
+      belief: "Motivation is what makes training happen.",
+      pattern: "Big weeks when energy is high, flat weeks when it isn't. The training log looks like a heart monitor.",
+      coaching: "Motivation follows consistency — not the other way around. Chronically low motivation is usually a dosing problem, not a character flaw.",
+      hear: ["I just couldn't get myself out the door", "I do great before a race but fall apart in base", "I was consistent for three weeks then fell off"]
+    },
+    3: {
+      label: "Step 3", badgeColor: "#633806", badgeBg: "#FAEEDA",
+      title: "You panic when you miss a session.",
+      belief: "Every missed session has to be made up.",
+      pattern: "Missed days create anxiety. The plan becomes a debt. Everything gets rearranged to restore the illusion of completeness.",
+      coaching: "Skipping is sometimes the correct coaching decision. The plan isn't broken because a day was missed — it's broken when you stop respecting what comes before and after.",
+      hear: ["I missed Tuesday so I combined it with Wednesday", "Can we move everything forward?", "I hate leaving sessions undone"]
+    },
+    4: {
+      label: "Step 4", badgeColor: "#633806", badgeBg: "#FAEEDA",
+      title: "You measure your training against others.",
+      belief: "If they can handle that, I should be able to too.",
+      pattern: "Other athletes' volume becomes the standard. Training gets dosed by comparison, not by individual capacity.",
+      coaching: "What they can do shows where the sport can take you. It tells you nothing about what you should do today. Separate inspiration from instruction.",
+      hear: ["My training partner is doing way more", "Should we add double days like the pros?", "I feel behind compared to others"]
+    },
+    5: {
+      label: "Step 5", badgeColor: "#085041", badgeBg: "#E1F5EE",
+      title: "Easy days feel like wasted opportunities.",
+      belief: "If I'm not practicing how I want to race, I'm not getting closer to it.",
+      pattern: "Aerobic days drift into tempo. The athlete follows the plan on paper but sabotages it in execution.",
+      coaching: "Feeling good at the end of an easy day isn't a sign you left something on the table — it's a sign the dose was right. Aerobic work builds the infrastructure. It doesn't announce itself.",
+      hear: ["It felt too slow so I let the pace drift up", "I felt good so I pushed a little", "Easy days feel like going through the motions"]
+    },
+    6: {
+      label: "Step 6", badgeColor: "#085041", badgeBg: "#E1F5EE",
+      title: "You have 'random' bad days you can't explain.",
+      belief: "Some days are just like that.",
+      pattern: "Fatigue appears without warning. Sessions fall apart. The athlete can't connect the bad day to its cause because the cause was days or weeks ago.",
+      coaching: "There's no such thing as a random bad day — only fatigue you didn't see coming. Trace it back. The bad day is the receipt, not the event.",
+      hear: ["I had a bad workout out of nowhere", "My legs were completely dead and I don't know why", "I felt fine yesterday"]
+    },
+    7: {
+      label: "Step 7", badgeColor: "#3C3489", badgeBg: "#EEEDFE",
+      title: "You trust the process without needing proof.",
+      belief: "Feeling good is data, not a warning.",
+      pattern: "Missed days are information. Bad days get traced back, not catastrophized. Other athletes' training is irrelevant to today's session.",
+      coaching: "Your role as coach shifts here. You're no longer correcting beliefs — you're a thinking partner. The athlete who reaches Step 7 will sometimes make you feel almost unnecessary. That's the product.",
+      hear: ["I missed a couple days but I could tell the body needed it", "The session felt easy but I know that's fine", "I had a bad day but I already know why"]
+    }
+  };
+
+  var currentQ = 0;
+  var answers = new Array(7).fill(null);
+  var resultStep = null;
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function startQuiz() {
+    currentQ = 0;
+    answers = new Array(7).fill(null);
+    renderQuestion();
+    showScreen('screen-quiz');
+  }
+
+  function renderQuestion() {
+    var q = QUESTIONS[currentQ];
+    var total = QUESTIONS.length;
+    document.getElementById('progress-fill').style.width = ((currentQ / total) * 100) + '%';
+    document.getElementById('question-counter').textContent = (currentQ + 1) + ' of ' + total;
+    document.getElementById('question-text').textContent = q.text;
+    var list = document.getElementById('options-list');
+    list.innerHTML = '';
+    q.options.forEach(function(opt, i) {
+      var btn = document.createElement('button');
+      btn.className = 'option-btn' + (answers[currentQ] === i ? ' selected' : '');
+      btn.textContent = opt.text;
+      btn.onclick = function() { selectOption(i); };
+      list.appendChild(btn);
+    });
+    document.getElementById('btn-back').disabled = currentQ === 0;
+    var isLast = currentQ === total - 1;
+    document.getElementById('btn-next').textContent = isLast ? 'See my result →' : 'Next →';
+    document.getElementById('btn-next').disabled = answers[currentQ] === null;
+  }
+
+  function selectOption(index) {
+    answers[currentQ] = index;
+    document.querySelectorAll('.option-btn').forEach(function(btn, i) {
+      btn.classList.toggle('selected', i === index);
+    });
+    document.getElementById('btn-next').disabled = false;
+  }
+
+  function goBack() {
+    if (currentQ > 0) { currentQ--; renderQuestion(); }
+  }
+
+  function goNext() {
+    if (answers[currentQ] === null) return;
+    if (currentQ < QUESTIONS.length - 1) { currentQ++; renderQuestion(); }
+    else { showResult(); }
+  }
+
+  function computeResult() {
+    var scores = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0};
+    answers.forEach(function(ansIdx, qIdx) {
+      if (ansIdx === null) return;
+      var weights = QUESTIONS[qIdx].options[ansIdx].weights;
+      Object.keys(weights).forEach(function(step) { scores[parseInt(step)] += weights[step]; });
+    });
+    var top = 1, topScore = -1;
+    Object.keys(scores).forEach(function(step) {
+      if (scores[step] > topScore) { topScore = scores[step]; top = parseInt(step); }
+    });
+    return top;
+  }
+
+  function showResult() {
+    resultStep = computeResult();
+    var step = STEPS[resultStep];
+    var badge = document.getElementById('result-badge');
+    badge.textContent = step.label;
+    badge.style.color = step.badgeColor;
+    badge.style.background = step.badgeBg;
+    document.getElementById('result-title').textContent = step.title;
+    document.getElementById('result-belief').textContent = step.belief;
+    document.getElementById('result-pattern').textContent = step.pattern;
+    document.getElementById('result-coaching').textContent = step.coaching;
+    var quotesEl = document.getElementById('hear-quotes');
+    quotesEl.innerHTML = '';
+    step.hear.forEach(function(q) {
+      var p = document.createElement('p');
+      p.className = 'hear-quote';
+      p.textContent = q;
+      quotesEl.appendChild(p);
+    });
+    document.getElementById('input-fname').value = '';
+    document.getElementById('input-email').value = '';
+    document.getElementById('email-form').style.display = 'flex';
+    document.getElementById('email-success').style.display = 'none';
+    document.getElementById('progress-fill').style.width = '100%';
+    showScreen('screen-result');
+  }
+
+  function submitForm() {
+    var fname = document.getElementById('input-fname').value.trim();
+    var email = document.getElementById('input-email').value.trim();
+    if (!email) { document.getElementById('input-email').focus(); return; }
+    var step = STEPS[resultStep];
+    var tag = step ? step.label : 'Step 1';
+    var params = new URLSearchParams({ EMAIL: email, FNAME: fname, tags: tag });
+    fetch(
+      'https://fit.us21.list-manage.com/subscribe/post?u=96ffeceddfd46d7dde754f6dd&id=94f9ee9789&f_id=002da7e6f0',
+      { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params.toString() }
+    ).catch(function() {});
+    document.getElementById('email-form').style.display = 'none';
+    document.getElementById('email-success').style.display = 'block';
+  }
+
+  function resetQuiz() {
+    currentQ = 0; answers = new Array(7).fill(null); resultStep = null;
+    showScreen('screen-intro');
+  }
+
+  document.addEventListener('keydown', function(e) {
+    var quiz = document.getElementById('screen-quiz');
+    if (!quiz.classList.contains('active')) return;
+    if (e.key >= '1' && e.key <= '4') {
+      var idx = parseInt(e.key) - 1;
+      if (idx < QUESTIONS[currentQ].options.length) selectOption(idx);
+    }
+    if (e.key === 'Enter' && answers[currentQ] !== null) goNext();
+    if (e.key === 'ArrowLeft' && currentQ > 0) goBack();
+  });
+</script>
+</body>
+</html>
