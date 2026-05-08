@@ -645,19 +645,50 @@
   }
 
   function submitForm() {
-    var fname = document.getElementById('input-fname').value.trim();
-    var email = document.getElementById('input-email').value.trim();
-    if (!email) { document.getElementById('input-email').focus(); return; }
-    var step = STEPS[resultStep];
-    var tag = step ? step.label : 'Step 1';
-    var params = new URLSearchParams({ EMAIL: email, FNAME: fname, tags: tag });
-    fetch(
-      'https://fit.us21.list-manage.com/subscribe/post?u=96ffeceddfd46d7dde754f6dd&id=94f9ee9789&f_id=002da7e6f0',
-      { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params.toString() }
-    ).catch(function() {});
+  var fname = document.getElementById('input-fname').value.trim();
+  var email = document.getElementById('input-email').value.trim();
+  
+  if (!email) { 
+    document.getElementById('input-email').focus(); 
+    return; 
+  }
+
+  var step = STEPS[resultStep];
+  var tag = step ? step.label : 'Step 1';
+
+  // Build the Mailchimp JSONP URL
+  // Note: change /post? to /post-json? and add &c=mailchimpCallback
+  var baseUrl = 'https://fit.us21.list-manage.com/subscribe/post-json?u=96ffeceddfd46d7dde754f6dd&id=94f9ee9789&f_id=002da7e6f0';
+  var params = '&EMAIL=' + encodeURIComponent(email) + '&FNAME=' + encodeURIComponent(fname) + '&tags=' + encodeURIComponent(tag) + '&c=mailchimpCallback';
+  var url = baseUrl + params;
+
+  // Show loading state
+  var submitBtn = document.querySelector('.email-card .btn-primary');
+  submitBtn.textContent = 'Sending...';
+  submitBtn.disabled = true;
+
+  // JSONP callback
+  window.mailchimpCallback = function(response) {
     document.getElementById('email-form').style.display = 'none';
     document.getElementById('email-success').style.display = 'block';
-  }
+    // Clean up
+    var script = document.getElementById('mc-jsonp');
+    if (script) script.parentNode.removeChild(script);
+    delete window.mailchimpCallback;
+  };
+
+  // Inject script tag for JSONP
+  var script = document.createElement('script');
+  script.id = 'mc-jsonp';
+  script.src = url;
+  document.body.appendChild(script);
+
+  // Fallback — show success after 3 seconds regardless
+  setTimeout(function() {
+    document.getElementById('email-form').style.display = 'none';
+    document.getElementById('email-success').style.display = 'block';
+  }, 3000);
+}
 
   function resetQuiz() {
     currentQ = 0; answers = new Array(7).fill(null); resultStep = null;
