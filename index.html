@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -357,6 +358,8 @@
 </head>
 <body>
 
+<iframe name="mc-iframe" id="mc-iframe" style="display:none;" aria-hidden="true"></iframe>
+
 <section id="screen-intro" class="screen active">
   <div class="logo"><span>Per</span><span>Hea</span></div>
   <p class="eyebrow">The PerHea Method</p>
@@ -411,7 +414,7 @@
     <div class="email-form" id="email-form">
       <input class="email-input" id="input-fname" type="text" placeholder="First name" autocomplete="given-name" />
       <input class="email-input" id="input-email" type="email" placeholder="Email address" autocomplete="email" />
-      <button class="btn btn-primary" onclick="submitForm()">Send me the PDF →</button>
+      <button class="btn btn-primary" id="btn-submit" onclick="submitForm()">Send me the PDF →</button>
       <p class="fine-print">You'll also receive PerHea: The Brief twice a month. Unsubscribe anytime.</p>
     </div>
     <p class="email-success" id="email-success">You're in. Check your inbox shortly.</p>
@@ -645,62 +648,46 @@
   }
 
   function submitForm() {
-  var fname = document.getElementById('input-fname').value.trim();
-  var email = document.getElementById('input-email').value.trim();
-  
-  if (!email) {
-    document.getElementById('input-email').focus();
-    return;
+    var fname = document.getElementById('input-fname').value.trim();
+    var email = document.getElementById('input-email').value.trim();
+    if (!email) { document.getElementById('input-email').focus(); return; }
+
+    var step = STEPS[resultStep];
+    var tag = step ? step.label : 'Step 1';
+
+    var btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://fit.us21.list-manage.com/subscribe/post?u=96ffeceddfd46d7dde754f6dd&id=94f9ee9789&f_id=002da7e6f0';
+    form.target = 'mc-iframe';
+
+    var fields = {
+      'EMAIL': email,
+      'FNAME': fname,
+      'tags': tag,
+      'b_96ffeceddfd46d7dde754f6dd_94f9ee9789': ''
+    };
+
+    Object.keys(fields).forEach(function(key) {
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = fields[key];
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+
+    setTimeout(function() {
+      document.getElementById('email-form').style.display = 'none';
+      document.getElementById('email-success').style.display = 'block';
+    }, 1000);
   }
-
-  var step = STEPS[resultStep];
-  var tag = step ? step.label : 'Step 1';
-
-  // Build Mailchimp subscribe URL with pre-filled fields
-  var url = 'https://fit.us21.list-manage.com/subscribe/post?u=96ffeceddfd46d7dde754f6dd&id=94f9ee9789&f_id=002da7e6f0'
-    + '&EMAIL=' + encodeURIComponent(email)
-    + '&FNAME=' + encodeURIComponent(fname)
-    + '&tags=' + encodeURIComponent(tag)
-    + '&SOURCE=' + encodeURIComponent('Find Your Step - ' + tag);
-
-  // Show success immediately
-  document.getElementById('email-form').style.display = 'none';
-  document.getElementById('email-success').style.display = 'block';
-
-  // Submit via hidden iframe so user stays on page
-  var iframe = document.getElementById('mc-iframe');
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.id = 'mc-iframe';
-    iframe.name = 'mc-iframe';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-  }
-
-  var form = document.createElement('form');
-  form.method = 'POST';
-  form.action = 'https://fit.us21.list-manage.com/subscribe/post?u=96ffeceddfd46d7dde754f6dd&id=94f9ee9789&f_id=002da7e6f0';
-  form.target = 'mc-iframe';
-
-  var fields = {
-    EMAIL: email,
-    FNAME: fname,
-    tags: tag,
-    'b_96ffeceddfd46d7dde754f6dd_94f9ee9789': ''
-  };
-
-  Object.keys(fields).forEach(function(key) {
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = key;
-    input.value = fields[key];
-    form.appendChild(input);
-  });
-
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
-}
 
   function resetQuiz() {
     currentQ = 0; answers = new Array(7).fill(null); resultStep = null;
@@ -720,3 +707,4 @@
 </script>
 </body>
 </html>
+```
