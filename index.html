@@ -648,46 +648,58 @@
   var fname = document.getElementById('input-fname').value.trim();
   var email = document.getElementById('input-email').value.trim();
   
-  if (!email) { 
-    document.getElementById('input-email').focus(); 
-    return; 
+  if (!email) {
+    document.getElementById('input-email').focus();
+    return;
   }
 
   var step = STEPS[resultStep];
   var tag = step ? step.label : 'Step 1';
 
-  // Build the Mailchimp JSONP URL
-  // Note: change /post? to /post-json? and add &c=mailchimpCallback
-  var baseUrl = 'https://fit.us21.list-manage.com/subscribe/post-json?u=96ffeceddfd46d7dde754f6dd&id=94f9ee9789&f_id=002da7e6f0';
-  var params = '&EMAIL=' + encodeURIComponent(email) + '&FNAME=' + encodeURIComponent(fname) + '&tags=' + encodeURIComponent(tag) + '&c=mailchimpCallback';
-  var url = baseUrl + params;
+  // Build Mailchimp subscribe URL with pre-filled fields
+  var url = 'https://fit.us21.list-manage.com/subscribe/post?u=96ffeceddfd46d7dde754f6dd&id=94f9ee9789&f_id=002da7e6f0'
+    + '&EMAIL=' + encodeURIComponent(email)
+    + '&FNAME=' + encodeURIComponent(fname)
+    + '&tags=' + encodeURIComponent(tag)
+    + '&SOURCE=' + encodeURIComponent('Find Your Step - ' + tag);
 
-  // Show loading state
-  var submitBtn = document.querySelector('.email-card .btn-primary');
-  submitBtn.textContent = 'Sending...';
-  submitBtn.disabled = true;
+  // Show success immediately
+  document.getElementById('email-form').style.display = 'none';
+  document.getElementById('email-success').style.display = 'block';
 
-  // JSONP callback
-  window.mailchimpCallback = function(response) {
-    document.getElementById('email-form').style.display = 'none';
-    document.getElementById('email-success').style.display = 'block';
-    // Clean up
-    var script = document.getElementById('mc-jsonp');
-    if (script) script.parentNode.removeChild(script);
-    delete window.mailchimpCallback;
+  // Submit via hidden iframe so user stays on page
+  var iframe = document.getElementById('mc-iframe');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'mc-iframe';
+    iframe.name = 'mc-iframe';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+  }
+
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = 'https://fit.us21.list-manage.com/subscribe/post?u=96ffeceddfd46d7dde754f6dd&id=94f9ee9789&f_id=002da7e6f0';
+  form.target = 'mc-iframe';
+
+  var fields = {
+    EMAIL: email,
+    FNAME: fname,
+    tags: tag,
+    'b_96ffeceddfd46d7dde754f6dd_94f9ee9789': ''
   };
 
-  // Inject script tag for JSONP
-  var script = document.createElement('script');
-  script.id = 'mc-jsonp';
-  script.src = url;
-  document.body.appendChild(script);
+  Object.keys(fields).forEach(function(key) {
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = fields[key];
+    form.appendChild(input);
+  });
 
-  // Fallback — show success after 3 seconds regardless
-  setTimeout(function() {
-    document.getElementById('email-form').style.display = 'none';
-    document.getElementById('email-success').style.display = 'block';
-  }, 3000);
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
 }
 
   function resetQuiz() {
